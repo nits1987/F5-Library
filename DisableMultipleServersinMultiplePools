@@ -1,0 +1,65 @@
+public class F5Func
+{
+
+public iControl.Interfaces LoadAll = new iControl.Interfaces();
+public bool LoginUser(string URI, string username, string ipassword)
+        {
+            LoadAll.ConnectionInfo.clear();
+            bool bInitialized = LoadAll.initialize(URI, username, password);
+            return bInitialized;
+        }
+public bool DisableEnablePoolMemebersInLB(string[] PoolIP, string[] HostAddr, string EnableorDisable, string Set, string State)
+        {
+
+            iControl.CommonIPPortDefinition[][] MemberList = LoadAll.LocalLBPool.get_member(PoolIP);
+            iControl.LocalLBPoolMemberMemberSessionState[][] sessionstatenodeinpool = new iControl.LocalLBPoolMemberMemberSessionState[MemberList.Length][];
+
+            int i = 0, j = 0;
+            for (i = 0; i < MemberList.Length; i++)
+            {
+                sessionstatenodeinpool[i] = new iControl.LocalLBPoolMemberMemberSessionState[MemberList[i].Length];
+                for (j = 0; j < MemberList[i].Length; j++)
+                {
+
+                    sessionstatenodeinpool[i][j] = new iControl.LocalLBPoolMemberMemberSessionState();
+                    sessionstatenodeinpool[i][j].member = new iControl.CommonIPPortDefinition();
+                    sessionstatenodeinpool[i][j].member.address = MemberList[i][j].address.ToString();
+                    sessionstatenodeinpool[i][j].member.port = MemberList[i][j].port;
+                    sessionstatenodeinpool[i][j].session_state = new iControl.CommonEnabledState();
+                    if (EnableorDisable == "Disable")
+                    {
+                        if (HostAddr.Contains<string>(MemberList[i][j].address.ToString()))
+                            sessionstatenodeinpool[i][j].session_state = iControl.CommonEnabledState.STATE_DISABLED;
+                        else
+                            sessionstatenodeinpool[i][j].session_state = iControl.CommonEnabledState.STATE_ENABLED;
+                    }
+                    else if (Set == "B" & EnableorDisable == "Enable" & State == "Live")
+                    {
+                        sessionstatenodeinpool[i][j].session_state = iControl.CommonEnabledState.STATE_ENABLED;
+                    }
+                    else
+                    {
+                        if (HostAddr.Contains<string>(MemberList[i][j].address.ToString()))
+                            sessionstatenodeinpool[i][j].session_state = iControl.CommonEnabledState.STATE_ENABLED;
+                        else
+                            sessionstatenodeinpool[i][j].session_state = iControl.CommonEnabledState.STATE_DISABLED;
+                    }
+                }
+
+            }
+            try
+            {
+                LoadAll.LocalLBPoolMember.set_session_enabled_state(PoolIP, sessionstatenodeinpool);
+            }
+            catch (System.Exception E)
+            {
+               log it in you system// string temp = E.StackTrace.ToString();
+                return false;
+            }
+            return true;
+        }
+        
+        
+        
+        }
+        
